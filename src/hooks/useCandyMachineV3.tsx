@@ -36,6 +36,7 @@ import {
   parseGuardGroup,
   parseGuardStates,
 } from "./utils";
+import { Keypair } from "@solana/web3.js";
 
 export default function useCandyMachineV3(
   candyMachineId: PublicKey | string,
@@ -193,11 +194,15 @@ export default function useCandyMachineV3(
           );
         }
         for (let index = 0; index < quantityString; index++) {
+          const token = Keypair.generate();
+          const mint = Keypair.generate();
           transactionBuilders.push(
             await mintFromCandyMachineBuilder(mx, {
               candyMachine,
               collectionUpdateAuthority: candyMachine.authorityAddress, // mx.candyMachines().pdas().authority({candyMachine: candyMachine.address})
               group: opts.groupLabel,
+              token,
+              mint,
               guards: {
                 nftBurn: opts.nftGuards && opts.nftGuards[index]?.burn,
                 nftPayment: opts.nftGuards && opts.nftGuards[index]?.payment,
@@ -209,7 +214,7 @@ export default function useCandyMachineV3(
         }
         const blockhash = await mx.rpc().getLatestBlockhash();
 
-        const transactions = transactionBuilders.map((t) =>
+        let transactions = transactionBuilders.map((t) =>
           t.toTransaction(blockhash)
         );
         const signers: { [k: string]: IdentitySigner } = {};
@@ -223,23 +228,30 @@ export default function useCandyMachineV3(
             else if ("_signer" in s) tx.partialSign(s._signer);
           });
         });
-        let signedTransactions = transactions;
 
         for (let signer in signers) {
-          await signers[signer].signAllTransactions(transactions);
+          transactions = await signers[signer].signAllTransactions(
+            transactions
+          );
         }
+        let signedTransactions = transactions;
+
         if (allowList) {
           const allowListCallGuardRouteTx = signedTransactions.shift();
           const allowListCallGuardRouteTxBuilder = transactionBuilders.shift();
           await mx.rpc().sendAndConfirmTransaction(allowListCallGuardRouteTx, {
             commitment: "processed",
+            skipPreflight: true,
           });
         }
         const output = await Promise.all(
           signedTransactions.map((tx, i) => {
             return mx
               .rpc()
-              .sendAndConfirmTransaction(tx, { commitment: "finalized" })
+              .sendAndConfirmTransaction(tx, {
+                commitment: "finalized",
+                skipPreflight: true,
+              })
               .then((tx) => ({
                 ...tx,
                 context: transactionBuilders[i].getContext() as any,
