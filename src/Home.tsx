@@ -592,13 +592,13 @@ const Home = (props: HomeProps) => {
             <Column>
               <ImageWrap>
                 <Image>
-
+                  
                 </Image>
               </ImageWrap>
             </Column>
             <Column>
               <Content>
-                <CollectionName>Collection Name</CollectionName>
+                <CollectionName>Souil Tree</CollectionName>
                 <InfoRow>
                 {guardStates.isStarted && wallet.publicKey && (
                   <InfoBox>
@@ -611,11 +611,11 @@ const Home = (props: HomeProps) => {
                     <p>{candyPrice}</p>
                   </InfoBox>
                 )}
-                  <IconRow>
+                  {/* <IconRow>
                     <a href="#" target="_blank" rel="noopener noreferrer"><Globe></Globe></a>
                     <a href="#" target="_blank" rel="noopener noreferrer"><Twitter></Twitter></a>
                     <a href="#" target="_blank" rel="noopener noreferrer"><Discord></Discord></a>
-                  </IconRow>
+                  </IconRow> */}
                 </InfoRow>
                 <CollectionDescription>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.</CollectionDescription>
               </Content>
